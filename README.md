@@ -1,1 +1,1 @@
-# next-day-wildfire-spread-prediction-and-reporting
+# Next-day Wildfire Spread Prediction and Reporting
