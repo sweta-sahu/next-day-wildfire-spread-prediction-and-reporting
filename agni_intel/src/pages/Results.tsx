@@ -1,144 +1,121 @@
-import React, { useRef, useState, useEffect } from 'react';
-import {  useNavigate } from 'react-router-dom';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-// import html2canvas from 'html2canvas';
-import TitleBar from '../components/TitleBar';
-import Report from '../components/Report';
-import { ReportData } from '../types/ReportData';
+// src/pages/Results.tsx
+import React, { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Document, Page, pdfjs } from 'react-pdf'
+import TitleBar from '../components/TitleBar'
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css'
+
+// point at CDN worker
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
+
+type LocationState = { reportUrl?: string }
 
 const Results: React.FC = () => {
-  const navigate = useNavigate();
-  const reportRef = useRef<HTMLDivElement>(null);
-  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const navigate = useNavigate()
+  const { state } = useLocation() as { state: LocationState }
+  const reportUrl = state?.reportUrl
 
+  const [numPages, setNumPages]     = useState(0)
+  const [pageNumber, setPageNumber] = useState(1)
+  const [scale, setScale]           = useState(1.0)
 
-  useEffect(() => {
-    const fetchReport = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/api/report');
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        setReportData(data);
-      } catch (err) {
-        console.error('Error fetching report data:', err);
-        setReportData(null);
-      }
-    };
-  
-    fetchReport();
-  
-    
-  }, []);
-  
- 
-
-  const handleExportPDF = async () => {
-    if (!reportData) return;
-
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const marginLeft = 15;
-    let y = 20;
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const maxWidth = pageWidth - marginLeft * 2;
-
-    pdf.setFontSize(20);
-    pdf.setTextColor(0);
-    pdf.text('Analysis Report', marginLeft, y);
-    y += 12;
-
-    pdf.setFontSize(12);
-    pdf.setTextColor(80);
-    const summary = "This report summarizes the predicted spread, critical hotspots, and key action items.";
-    const summaryLines = pdf.splitTextToSize(summary, maxWidth);
-    pdf.text(summaryLines, marginLeft, y);
-    y += summaryLines.length * 6 + 6;
-
-    pdf.setTextColor(0);
-    pdf.setFontSize(14);
-    pdf.text('Actionable Recommendations', marginLeft, y);
-    y += 8;
-
-    pdf.setFontSize(12);
-    reportData.actionItems.forEach((item: string) => {
-      const lines = pdf.splitTextToSize(`• ${item}`, maxWidth);
-      pdf.text(lines, marginLeft, y);
-      y += lines.length * 6;
-    });
-
-    y += 10;
-
-    pdf.setFontSize(14);
-    pdf.text('Risk Analysis Visualizations', marginLeft, y);
-    y += 10;
-
-    for (const imgUrl of reportData.analysisImages) {
-      try {
-        const imgData = await loadImageAsBase64(imgUrl);
-        const imgProps = pdf.getImageProperties(imgData);
-        const imgHeight = (imgProps.height * maxWidth) / imgProps.width;
-
-        if (y + imgHeight > pageHeight - 20) {
-          pdf.addPage();
-          y = 20;
-        }
-        pdf.addImage(imgData, 'JPEG', marginLeft, y, maxWidth, imgHeight);
-        y += imgHeight + 10;
-      } catch (err) {
-        console.error('Failed to load image', imgUrl, err);
-      }
-    }
-
-    pdf.save('wildfire-report.pdf');
-  };
-
-  const loadImageAsBase64 = (url: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return reject(new Error('Could not get canvas context'));
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/jpeg'));
-      };
-      img.onerror = reject;
-      img.src = url;
-    });
-  };
-
-
-  return (
-    <div className="page-container">
-      <TitleBar title="Analysis Results" />
-      <div className="results-container">
-      {reportData ? (
-          <div ref={reportRef}>
-            <Report data={reportData} />
-          </div>
-        ) : (
-          <div className="text-center my-5 text-muted">No report data available.</div>
-        )}
-        <div className="d-flex justify-content-between mt-4">
-          <button className="btn btn-secondary" onClick={() => navigate('/')}>
-            Back to Home
-          </button>
+  if (!reportUrl) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">No report to display.</p>
           <button
-            className="btn export-btn"
-            onClick={handleExportPDF}
-            disabled={!reportData}
+            className="analyze-btn"
+            onClick={() => navigate('/')}
           >
-            Export as PDF
+            Back to Home
           </button>
         </div>
       </div>
-    </div>
-  );
-};
+    )
+  }
 
-export default Results;
+  const onDocumentLoadSuccess = (pdf: any) => {
+    setNumPages(pdf.numPages)
+    setPageNumber(1)
+  }
+  const changePage = (offset: number) =>
+    setPageNumber(p => Math.min(Math.max(p + offset, 1), numPages))
+  const downloadReport = () => {
+    const a = document.createElement('a')
+    a.href = reportUrl
+    a.download = 'wildfire_report.pdf'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
+
+  return (
+    <div className="flex flex-col h-screen bg-gray-100">
+      <TitleBar title="Wildfire Incident Report" />
+
+      {/* Toolbar */}
+      <div className="sticky top-0 z-20 flex items-center bg-white shadow px-6 py-3">
+        <button
+          className="analyze-btn mr-2"
+          onClick={() => changePage(-1)}
+          disabled={pageNumber <= 1}
+        >
+          ‹ Prev
+        </button>
+        <span className="text-gray-700 mx-2">
+          Page {pageNumber} / {numPages}
+        </span>
+        <button
+          className="analyze-btn mr-auto"
+          onClick={() => changePage(1)}
+          disabled={pageNumber >= numPages}
+        >
+          Next ›
+        </button>
+
+        <button
+          className="analyze-btn mr-2"
+          onClick={() => setScale(s => Math.max(0.4, s - 0.2))}
+          disabled={scale <= 0.4}
+        >
+          – Zoom
+        </button>
+        <button
+          className="analyze-btn mr-6"
+          onClick={() => setScale(s => Math.min(3, s + 0.2))}
+          disabled={scale >= 3}
+        >
+          + Zoom
+        </button>
+
+        <button
+          className="analyze-btn"
+          onClick={downloadReport}
+        >
+          Download
+        </button>
+      </div>
+
+      {/* PDF Viewer */}
+      <div className="flex-1 overflow-auto p-6">
+        <div className="mx-auto max-w-4xl bg-white rounded-lg shadow-lg overflow-hidden">
+          <Document
+            file={reportUrl}
+            onLoadSuccess={onDocumentLoadSuccess}
+            loading={<p className="p-6 text-center">Loading report…</p>}
+            noData={<p className="p-6 text-center">No PDF file specified.</p>}
+          >
+            <Page
+              pageNumber={pageNumber}
+              scale={scale}
+              loading={<p className="p-6 text-center">Rendering page…</p>}
+            />
+          </Document>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Results
