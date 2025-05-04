@@ -57,6 +57,8 @@ body {
     }
 }
 
+
+
 .panel-container {
     display: flex;
     padding: 1.5rem;
@@ -282,10 +284,11 @@ body {
 }
 
 .results-container {
-    padding: 1.5rem;
-    max-height: calc(100vh - 80px);
+    padding: 1rem;
     overflow-y: auto;
+    max-height: calc(100vh - 80px);
 }
+
 
 .report-container {
     background-color: rgba(255, 255, 255, 0.8);
@@ -293,14 +296,6 @@ body {
     padding: 1.5rem;
     margin-bottom: 1.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.report-image {
-    max-width: 100%;
-    height: 250px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin: 1rem 0;
 }
 
 .export-btn {
@@ -312,6 +307,14 @@ body {
     font-weight: 600;
     border-radius: 50px;
     transition: all 0.3s ease;
+}
+
+.report-flex {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
 }
 
 .export-btn:hover {
@@ -363,5 +366,84 @@ body {
     .panel-container {
         flex-direction: column;
         max-height: none;
+    }
+}
+
+.report-panel {
+    flex: 1 1 48%;
+    background-color: rgba(255, 255, 255, 0.85);
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    min-width: 300px;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.custom-table th {
+    background-color: rgba(247, 163, 92, 0.35);
+    padding: 12px;
+    text-align: center;
+    font-weight: bold;
+    color: #000;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.custom-table td {
+    padding: 10px;
+    text-align: center;
+    border-top: 1px solid #eee;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.custom-table tr:hover {
+    background-color: #fff3e6;
+}
+
+.report-image-section {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+
+
+.image-wrapper {
+    flex: 1 1 48%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.report-image {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+h4 {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+
+    .report-flex,
+    .report-image-section {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .report-panel,
+    .image-wrapper {
+        flex: 1 1 100%;
     }
 }
