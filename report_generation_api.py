@@ -55,7 +55,7 @@ model.eval()
 model.cpu()  
 
 # LLM setup
-HF_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN","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")
+HF_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 LLM_NAME = "mistralai/Mistral-7B-Instruct-v0.2"
 
 tokenizer = AutoTokenizer.from_pretrained(LLM_NAME, use_auth_token=HF_TOKEN)
