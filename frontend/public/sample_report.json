@@ -1,0 +1,35 @@
+{
+  "dayt_true_area_km2": 12.45,
+  "dayt1_pred_area_km2": 16.32,
+  "delta_area_km2": 3.87,
+  "direction": "NE",
+  "hotspots": [
+    {
+      "x": 101,
+      "y": 52,
+      "p": 0.997
+    },
+    {
+      "x": 88,
+      "y": 45,
+      "p": 0.983
+    },
+    {
+      "x": 110,
+      "y": 60,
+      "p": 0.971
+    },
+    {
+      "x": 95,
+      "y": 49,
+      "p": 0.962
+    },
+    {
+      "x": 105,
+      "y": 57,
+      "p": 0.951
+    }
+  ],
+  "rgb_pred_png": "/static/sample_rgb_pred.png",
+  "corridor_rgb_png": "/static/sample_corridor.png"
+}

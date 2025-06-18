@@ -1,1 +1,4 @@
 dataset
+backend/static/output/
+frontend/node_modules
+model
